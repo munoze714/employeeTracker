@@ -21,3 +21,20 @@ const connection = mysql.createConnection({
     password: "rootroot",
     database: "employeeTracker_db"
 });
+
+// Inquirer
+// function addDepartment() {
+inquirer
+    .prompt([
+        /* Pass your questions in here */
+        {
+            type: "input",
+            name: "department",
+            message: "Whats your Department?"
+        }
+    ])
+    .then(answers => {
+        console.log(answers);
+        connection.query('INSERT INTO department (name) VALUES (?)', [answers.department]);
+    });
+// };
