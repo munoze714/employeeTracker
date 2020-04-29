@@ -22,7 +22,7 @@ const connection = mysql.createConnection({
     database: "employeeTracker_db"
 });
 
-// Inquirer
+// Inquirer 
 function startUp() {
     inquirer.prompt([{
         type: "list",
@@ -47,10 +47,11 @@ function startUp() {
                 break;
             case "Update Employee Roles": updateEmployeeRoles();
                 break;
+            default: console.table("employeeTracker_db")
         }
     });
 }
-
+startUp();
 function addDepartment() {
     inquirer
         .prompt([
@@ -65,53 +66,56 @@ function addDepartment() {
             console.log(answers);
             connection.query('INSERT INTO department (name) VALUES (?)', [answers.department]);
         });
+    console.table()
+    // startUp();
 };
 
 function addRole() {
-    connection.query('SELECT * FROM department', function (err, result) {
-        //new array for dept names
-        let deptNames = [];
-        //for loop thru depts
-        result.forEach(element => {
-            deptNames.push(element);
+    let deptNames = [];
+    connection.query("SELECT name FROM department", function (err, result) {
+        Object.keys(result).forEach(function (key) {
+            var row = result[key];
+            deptNames.push(row.name);
+            if (err) throw err;
         });
-        inquirer
-            .prompt([
-                /* Pass your questions in here */
-                {
-                    type: "input",
-                    name: "title",
-                    message: "Whats your Role title?"
-                },
-                {
-                    type: "input",
-                    name: "salary",
-                    message: "Input your Salary"
-                },
-                {
-                    type: "list",
-                    name: "dept",
-                    message: "Choose your dept",
-                    choices: [deptNames]
-                }
-            ])
-            .then(answers => {
-                connection.query("SELECT department(id) FROM department WHERE name = ?"[answers.dept], (err, data) => {
-                    const dept = data[0]['department(id)'];
-                    connection.query("INSERT INTO role (departmentId) VALUES (?)", [dept]);
-                })
-                connection.query('INSERT INTO role (title , salary) VALUES (?)', [answers.title, answers.salary]);
-                console.log(answers);
-            });
     });
+    inquirer.prompt([
+        /* Pass your questions in here */
+        {
+            type: "input",
+            name: "title",
+            message: "Whats your Role title?"
+        },
+        {
+            type: "input",
+            name: "salary",
+            message: "Input your Salary"
+        },
+        {
+            type: "list",
+            name: "dept",
+            message: "Choose your dept",
+            choices: deptNames
+        }
+    ])
+        .then(answers => {
+            let dept;
+            connection.query("SELECT id  FROM department WHERE name =  ? ", [answers.dept], (err, data) => {
+                if (err) throw err;
+                data.forEach(function (key) {
+                    dept = key.id;
+                });
+                connection.query('INSERT INTO role (title , salary, departmentId ) VALUES (?,?,?)', [answers.title, answers.salary, dept]);
+            });
+        });
 };
 
-function addEmployee() { };
+// function addEmployee() { };
 
-function viewDepartment() { };
+// function viewDepartment() { };
 
-function viewRoles() { };
+// function viewRoles() { };
 
-function viewEmployee() { };
+// function viewEmployee() { };
 
-function updateEmployeeRoles() { };
+// function updateEmployeeRoles() { };
