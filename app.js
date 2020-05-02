@@ -23,6 +23,8 @@ const connection = mysql.createConnection({
     database: "employeeTracker_db"
 });
 
+
+
 // Inquirer 
 function startUp() {
     inquirer.prompt([{
@@ -52,7 +54,12 @@ function startUp() {
         }
     });
 }
-startUp();
+connection.connect(function (err) {
+    if (err) throw err;
+    console.clear();
+    startUp();
+});
+
 function addDepartment() {
     inquirer
         .prompt([
@@ -193,6 +200,13 @@ function viewRoles() {
     startUp();
 };
 
-// function viewEmployee() { };
+function viewEmployee() {
+    connection.query("SELECT employee.id , employee.firstName ,employee.lastName, employee.roleId, role.title , employee.managerId FROM employee LEFT JOIN role ON role.id = employee.roleId;", (err, data) => {
+        console.clear();
+        console.table("Employee table", data);
+    })
+    startUp();
+};
 
 // function updateEmployeeRoles() { };
+
