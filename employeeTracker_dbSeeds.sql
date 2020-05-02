@@ -29,6 +29,11 @@ CREATE TABLE employee(
   FOREIGN KEY(roleID) REFERENCES role(id)
 );
 
+INSERT INTO department (name) VALUES ('Sales'),('Enginering'),('Finance'),('Legal');
+INSERT INTO role (title , salary,departmentId) VALUES ('Sales Lead',1000000,1),('Salesperson', 80000,1),('Lead Engineer',150000,2),('Software Engineer',120000,2),('Accountant',125000,3),('Legal Team Lead',250000,4), ('Lawyer',190000,4);
+INSERT INTO employee (firstName, lastName,roleId,managerId) VALUES ('Liz',' Munoz',1,null),('David','Lovett',3,null),('Kevin','Tupik',4,2),('Mike','Chan',2,1),('Sarah','Lourd',6,null),('Tom','Allen',7,3);
+
+
 
 
 
