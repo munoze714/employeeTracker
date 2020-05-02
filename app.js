@@ -1,7 +1,7 @@
 // Dependecies
 var inquirer = require("inquirer");
 var mysql = require("mysql");
-var cTable = console.table
+var cTable = require("console.table")
 
 // ==============================================================================
 // MYSQL CONFIGURATION
@@ -48,7 +48,7 @@ function startUp() {
                 break;
             case "Update Employee Roles": updateEmployeeRoles();
                 break;
-            default: console.table("")
+            // default: console.table("")
         }
     });
 }
@@ -66,9 +66,8 @@ function addDepartment() {
         .then(answers => {
             // console.log(answers);
             connection.query('INSERT INTO department (name) VALUES (?)', [answers.department]);
+            startUp()
         });
-    startUp()
-
 };
 
 function addRole() {
@@ -104,10 +103,11 @@ function addRole() {
                     dept = key.id;
                 });
                 connection.query('INSERT INTO role (title , salary, departmentId ) VALUES (?,?,?)', [answers.title, answers.salary, dept]);
+                startUp()
             });
         });
     });
-    startUp()
+
 };
 
 function addEmployee() {
@@ -116,8 +116,6 @@ function addEmployee() {
         result.forEach(key => {
             roleNames.push(key.title);
         });
-
-
         connection.query("SELECT * FROM employeeTracker_db.employee WHERE managerId IS NULL", function (err, empResult) {
             // console.log('resuslt from where is null query', empResult)
             let managerNames = [
@@ -160,35 +158,40 @@ function addEmployee() {
                     var roleId = result.filter(key => {
                         return key.title === answers.roleId
                     })
-                    console.log('this is role id filter thing', roleId)
-                    var managerId = empResult.forEach(key => {
-                        return key.firstName === answers.managerId;
-                    });
 
-                    if (managerId) {
-                        managerId = managerId[0].id
-                    }
-                    if (answers.managerId === "I am a Manager") {
-                        managerId = null
-                    }
-                    connection.query('INSERT INTO employee (firstName , lastName, roleId, ManagerId) VALUES (?,?,?,?)', [answers.first_Name, answers.last_Name, roleId[0].id, managerId], function (err, results) {
-                        console.log('this is err, result', err, results)
+                    var managerId;
+                    empResult.forEach(key => {
+                        if (key.firstName === answers.managerId) {
+                            managerId = key.id
+                        } else if (answers.managerId === "I am a Manager") {
+                            managerId = null
+                        };
                     });
+                    connection.query('INSERT INTO employee (firstName , lastName, roleId, ManagerId) VALUES (?,?,?,?)',
+                        [answers.first_Name, answers.last_Name, roleId[0].id, managerId]);
+                    startUp()
                 });
         });
     });
-    startUp()
+
 };
 
 
 function viewDepartment() {
     connection.query("SELECT * FROM department", (err, data) => {
-        console.table(data);
+        console.clear();
+        console.table("Department Table", data);
     })
     startUp();
 };
 
-// function viewRoles() { };
+function viewRoles() {
+    connection.query("SELECT * FROM role LEFT JOIN department ON department.id = role.departmentId;", (err, data) => {
+        console.clear();
+        console.table("Roles table", data);
+    })
+    startUp();
+};
 
 // function viewEmployee() { };
 
