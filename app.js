@@ -1,6 +1,7 @@
 // Dependecies
 var inquirer = require("inquirer");
 var mysql = require("mysql");
+var cTable = console.table
 
 // ==============================================================================
 // MYSQL CONFIGURATION
@@ -47,7 +48,7 @@ function startUp() {
                 break;
             case "Update Employee Roles": updateEmployeeRoles();
                 break;
-            default: console.table("employeeTracker_db")
+            default: console.table("")
         }
     });
 }
@@ -63,42 +64,39 @@ function addDepartment() {
             }
         ])
         .then(answers => {
-            console.log(answers);
+            // console.log(answers);
             connection.query('INSERT INTO department (name) VALUES (?)', [answers.department]);
         });
-    console.table()
-    // startUp();
+    startUp()
+
 };
 
 function addRole() {
     let deptNames = [];
-    connection.query("SELECT name FROM department", function (err, result) {
-        Object.keys(result).forEach(function (key) {
-            var row = result[key];
-            deptNames.push(row.name);
-            if (err) throw err;
+    connection.query("SELECT * FROM department", function (err, result) {
+        result.forEach(key => {
+            deptNames.push(key.name);
         });
-    });
-    inquirer.prompt([
-        /* Pass your questions in here */
-        {
-            type: "input",
-            name: "title",
-            message: "Whats your Role title?"
-        },
-        {
-            type: "input",
-            name: "salary",
-            message: "Input your Salary"
-        },
-        {
-            type: "list",
-            name: "dept",
-            message: "Choose your dept",
-            choices: deptNames
-        }
-    ])
-        .then(answers => {
+
+        inquirer.prompt([
+            /* Pass your questions in here */
+            {
+                type: "input",
+                name: "title",
+                message: "Whats your Role title?"
+            },
+            {
+                type: "input",
+                name: "salary",
+                message: "Input your Salary"
+            },
+            {
+                type: "list",
+                name: "dept",
+                message: "Choose your dept",
+                choices: deptNames
+            }
+        ]).then(answers => {
             let dept;
             connection.query("SELECT id  FROM department WHERE name =  ? ", [answers.dept], (err, data) => {
                 if (err) throw err;
@@ -108,11 +106,87 @@ function addRole() {
                 connection.query('INSERT INTO role (title , salary, departmentId ) VALUES (?,?,?)', [answers.title, answers.salary, dept]);
             });
         });
+    });
+    startUp()
 };
 
-// function addEmployee() { };
+function addEmployee() {
+    let roleNames = [];
+    connection.query("SELECT * FROM role", function (err, result) {
+        result.forEach(key => {
+            roleNames.push(key.title);
+        });
 
-// function viewDepartment() { };
+
+        connection.query("SELECT * FROM employeeTracker_db.employee WHERE managerId IS NULL", function (err, empResult) {
+            // console.log('resuslt from where is null query', empResult)
+            let managerNames = [
+                "I am a Manager"
+            ];
+            empResult.forEach(key => {
+                // console.log("were looping", key)
+                //if (key.title === "manager") {
+                managerNames.push(key.firstName);
+                //}
+            });
+            // console.log('this is our manger names array for hcoices', managerNames)
+            inquirer
+                .prompt([
+                    /* Pass your questions in here */
+                    {
+                        type: "input",
+                        name: "first_Name",
+                        message: "Enter Your First Name?"
+                    },
+                    {
+                        type: "input",
+                        name: "last_Name",
+                        message: "Enter Your Last Name?"
+                    },
+                    {
+                        type: "list",
+                        name: "roleId",
+                        message: "Choose your Role",
+                        choices: roleNames
+                    },
+                    {
+                        type: "list",
+                        name: "managerId",
+                        message: "Who is your Manager",
+                        choices: managerNames
+                    },
+                ]).then(answers => {
+                    // console.log(answers);
+                    var roleId = result.filter(key => {
+                        return key.title === answers.roleId
+                    })
+                    console.log('this is role id filter thing', roleId)
+                    var managerId = empResult.forEach(key => {
+                        return key.firstName === answers.managerId;
+                    });
+
+                    if (managerId) {
+                        managerId = managerId[0].id
+                    }
+                    if (answers.managerId === "I am a Manager") {
+                        managerId = null
+                    }
+                    connection.query('INSERT INTO employee (firstName , lastName, roleId, ManagerId) VALUES (?,?,?,?)', [answers.first_Name, answers.last_Name, roleId[0].id, managerId], function (err, results) {
+                        console.log('this is err, result', err, results)
+                    });
+                });
+        });
+    });
+    startUp()
+};
+
+
+function viewDepartment() {
+    connection.query("SELECT * FROM department", (err, data) => {
+        console.table(data);
+    })
+    startUp();
+};
 
 // function viewRoles() { };
 
