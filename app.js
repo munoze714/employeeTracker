@@ -48,9 +48,9 @@ function startUp() {
                 break;
             case "Update Employee Roles": updateEmployeeRoles();
                 break;
-        }
+        };
     });
-}
+};
 connection.connect(function (err) {
     if (err) throw err;
     console.clear();
@@ -70,7 +70,8 @@ function addDepartment() {
         .then(answers => {
             // console.log(answers);
             connection.query('INSERT INTO department (name) VALUES (?)', [answers.department]);
-            startUp()
+            console.clear();
+            startUp();
         });
 };
 
@@ -107,7 +108,8 @@ function addRole() {
                     dept = key.id;
                 });
                 connection.query('INSERT INTO role (title , salary, departmentId ) VALUES (?,?,?)', [answers.title, answers.salary, dept]);
-                startUp()
+                console.clear();
+                startUp();
             });
         });
     });
@@ -150,22 +152,21 @@ function addEmployee() {
                         choices: managerNames
                     },
                 ]).then(answers => {
-                    // console.log(answers);
                     var roleId = result.filter(key => {
-                        return key.title === answers.roleId
-                    })
-
+                        return key.title === answers.roleId;
+                    });
                     var managerId;
                     empResult.forEach(key => {
                         if (key.firstName === answers.managerId) {
-                            managerId = key.id
+                            managerId = key.id;
                         } else if (answers.managerId === "I am a Manager") {
-                            managerId = null
+                            managerId = null;
                         };
                     });
                     connection.query("INSERT INTO employee (firstName , lastName, roleId, ManagerId) VALUES (?,?,?,?)",
                         [answers.first_Name, answers.last_Name, roleId[0].id, managerId]);
-                    startUp()
+                    console.clear();
+                    startUp();
                 });
         });
     });
@@ -175,7 +176,8 @@ function viewDepartment() {
     connection.query("SELECT * FROM department", (err, data) => {
         console.clear();
         console.table("Department Table", data, "(Move up/down to reselect)");
-    })
+    });
+    console.clear();
     startUp();
 };
 
@@ -184,6 +186,7 @@ function viewRoles() {
         console.clear();
         console.table("Roles table", data, "(Move up/down to reselect)");
     })
+    console.clear();
     startUp();
 };
 
@@ -192,6 +195,7 @@ function viewEmployee() {
         console.clear();
         console.table("Employee table", data, "(Move up/down to reselect)");
     })
+    console.clear();
     startUp();
 };
 
@@ -214,19 +218,31 @@ function updateEmployeeRoles() {
             connection.query("SELECT roleId  FROM employee WHERE firstName =  ? ", [answers.empName], (err, data) => {
                 data.forEach(key => {
                     roleIdUpdate = key.roleId;
-                })
-                console.log("var", roleIdUpdate)
-                inquirer.prompt([{
-                    type: "input",
-                    name: "updateRole",
-                    message: "Input Updated role"
-
-                }]).then(answersRole => {
-                    connection.query("UPDATE role SET (title) = ? WHERE id = ?", [answersRole.updateRole, roleIdUpdate]);
+                });
+                let roleTitle = [];
+                connection.query("SELECT * FROM role", function (err, roleresult) {
+                    roleresult.forEach(key => {
+                        roleTitle.push(key.title);
+                    });
+                    inquirer.prompt([
+                        {
+                            type: "list",
+                            name: "updateRole",
+                            message: "Choose Department",
+                            choices: roleTitle
+                        }
+                    ]).then(answersRole => {
+                        connection.query("UPDATE role SET title = ? WHERE id = ?", [answersRole.updateRole, roleIdUpdate]);
+                        console.clear();
+                        startUp()
+                    });
                 });
             });
         });
     });
 };
+
+
+
 
 
